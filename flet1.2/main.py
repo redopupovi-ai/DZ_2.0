@@ -25,12 +25,10 @@ def main(page: ft.Page):
 
     conn = init_db()
 
-    # Поля ввода
     name_input = ft.TextField(label="ФИО", width=250)
     position_input = ft.TextField(label="Должность", width=200)
     dept_input = ft.TextField(label="Отдел", width=200)
 
-    # Поиск и сортировка
     search_input = ft.TextField(
         label="Поиск по ФИО",
         width=300,
@@ -50,7 +48,6 @@ def main(page: ft.Page):
     )
     sort_dropdown.on_change = lambda e: update_table()
 
-    # Таблица
     employees_table = ft.DataTable(
         columns=[
             ft.DataColumn(ft.Text("ID")),
@@ -101,8 +98,7 @@ def main(page: ft.Page):
             (name_input.value, position_input.value, dept_input.value)
         )
         conn.commit()
-
-        # Очистка полей
+        
         name_input.value = ""
         position_input.value = ""
         dept_input.value = ""
@@ -115,7 +111,6 @@ def main(page: ft.Page):
         on_click=add_employee
     )
 
-    # Размещение элементов
     page.add(
         ft.Text("Регистрация нового сотрудника", size=20, weight=ft.FontWeight.BOLD),
         ft.Row([name_input, position_input, dept_input, add_btn], wrap=True),
