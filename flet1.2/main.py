@@ -1,6 +1,7 @@
 import flet as ft
 import sqlite3
 
+
 def init_db():
     conn = sqlite3.connect("employees.db", check_same_thread=False)
     cursor = conn.cursor()
@@ -15,25 +16,28 @@ def init_db():
     conn.commit()
     return conn
 
+
 def main(page: ft.Page):
     page.title = "Учет сотрудников"
     page.theme_mode = ft.ThemeMode.LIGHT
     page.padding = 20
-    page.scroll = ft.ScrollMode.ADAPTIVE 
+    page.scroll = ft.ScrollMode.ADAPTIVE
 
     conn = init_db()
 
+    # Поля ввода
     name_input = ft.TextField(label="ФИО", width=250)
     position_input = ft.TextField(label="Должность", width=200)
     dept_input = ft.TextField(label="Отдел", width=200)
 
+    # Поиск и сортировка
     search_input = ft.TextField(
-        label="Поиск по ФИО", 
-        width=300, 
+        label="Поиск по ФИО",
+        width=300,
         prefix_icon="search",
         on_change=lambda e: update_table()
     )
-    
+
     sort_dropdown = ft.Dropdown(
         label="Сортировать по",
         width=200,
@@ -46,6 +50,7 @@ def main(page: ft.Page):
     )
     sort_dropdown.on_change = lambda e: update_table()
 
+    # Таблица
     employees_table = ft.DataTable(
         columns=[
             ft.DataColumn(ft.Text("ID")),
@@ -57,12 +62,11 @@ def main(page: ft.Page):
     )
 
     def update_table():
-        """Обновляет данные в таблице с учетом поиска и сортировки"""
-        search_query = search_input.value
+        search_query = search_input.value if search_input.value else ""
         sort_by = sort_dropdown.value
 
-        valid_sort_columns = {"name", "position", "department"}
-        if sort_by not in valid_sort_columns:
+        # Защита от неправильной сортировки
+        if sort_by not in ["name", "position", "department"]:
             sort_by = "name"
 
         cursor = conn.cursor()
@@ -85,7 +89,6 @@ def main(page: ft.Page):
         page.update()
 
     def add_employee(e):
-        """Добавляет сотрудника в БД и обновляет интерфейс"""
         if not name_input.value or not position_input.value or not dept_input.value:
             page.snack_bar = ft.SnackBar(ft.Text("Пожалуйста, заполните все поля!"))
             page.snack_bar.open = True
@@ -99,25 +102,32 @@ def main(page: ft.Page):
         )
         conn.commit()
 
+        # Очистка полей
         name_input.value = ""
         position_input.value = ""
         dept_input.value = ""
         
         update_table()
 
-    add_btn = ft.ElevatedButton("Добавить сотрудника", icon="add", on_click=add_employee)
+    add_btn = ft.ElevatedButton(
+        "Добавить сотрудника",
+        icon="add",
+        on_click=add_employee
+    )
 
+    # Размещение элементов
     page.add(
         ft.Text("Регистрация нового сотрудника", size=20, weight=ft.FontWeight.BOLD),
         ft.Row([name_input, position_input, dept_input, add_btn], wrap=True),
         
-        ft.Divider(height=30, thickness=2),
+        ft.Divider(height=30),
         
         ft.Text("База сотрудников", size=20, weight=ft.FontWeight.BOLD),
         ft.Row([search_input, sort_dropdown], wrap=True),
         employees_table
     )
-
+    
     update_table()
+
 
 ft.run(main)
